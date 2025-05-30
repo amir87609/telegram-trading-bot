@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 MAX_SIGNALS_PER_DAY = 10
 user_data = {}
 
-BITCOIN_IMG_PATH = "btc.png"  # ضع هنا صورة بيتكوين بنفس الاسم في نفس المجلد
+BITCOIN_IMG_PATH = "btc.png"  # تأكد أن صورة بيتكوين بهذا الاسم بجانب هذا الملف
 
 def get_main_menu():
     keyboard = [
@@ -110,7 +110,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[user_id] = {"signals_today": 0, "wins": 0, "losses": 0}
 
     if query.data == "start_trading":
-        await query.edit_message_text("اختر المبلغ الذي تريد التداول به:", reply_markup=get_amount_menu())
+        await query.edit_message_text(
+            "اختر المبلغ الذي تريد التداول به:",
+            reply_markup=get_amount_menu()
+        )
 
     elif query.data.startswith("amount_"):
         if user_data[user_id]["signals_today"] >= MAX_SIGNALS_PER_DAY:
@@ -119,25 +122,30 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=get_main_menu()
             )
         else:
-            prices = await fetch_prices()
-            rsi = calc_rsi(prices)
-            signal_text = signal_from_rsi(rsi)
-            user_data[user_id]["signals_today"] += 1
-            context.user_data["last_signal"] = signal_text
-
-            caption = f"إشارتك اليوم (تحليل حقيقي):\n\n{signal_text}\n\nمؤشر RSI الحالي: {rsi if rsi else '---'}"
             try:
+                prices = await fetch_prices()
+                rsi = calc_rsi(prices)
+                signal_text = signal_from_rsi(rsi)
+                user_data[user_id]["signals_today"] += 1
+                context.user_data["last_signal"] = signal_text
+
+                caption = (
+                    f"إشارتك اليوم (تحليل حقيقي):\n\n"
+                    f"{signal_text}\n\n"
+                    f"مؤشر RSI الحالي: {rsi if rsi else '---'}"
+                )
                 with open(BITCOIN_IMG_PATH, "rb") as photo:
-                    await query.message.reply_photo(
+                    await context.bot.send_photo(
+                        chat_id=query.message.chat_id,
                         photo=photo,
                         caption=caption,
                         reply_markup=get_result_buttons()
                     )
-                await query.delete_message()
-            except Exception:
+                # لا داعي لحذف الرسالة القديمة، الأزرار ستبقى تعمل بشكل ممتاز
+            except Exception as e:
                 await query.edit_message_text(
-                    caption,
-                    reply_markup=get_result_buttons()
+                    f"حصل خطأ أثناء جلب التحليل: {e}",
+                    reply_markup=get_main_menu()
                 )
 
     elif query.data == "market_status":
