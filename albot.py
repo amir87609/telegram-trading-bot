@@ -1,5 +1,4 @@
 import logging
-import random
 import aiohttp
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -126,4 +125,64 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_data[user_id]["signals_today"] += 1
             context.user_data["last_signal"] = signal_text
 
-            caption = f"إشارتك اليوم (تحليل حقيقي):\n\n{signal_text}\n\nمؤشر RSI الحالي
+            caption = f"إشارتك اليوم (تحليل حقيقي):\n\n{signal_text}\n\nمؤشر RSI الحالي: {rsi if rsi else '---'}"
+            try:
+                with open(BITCOIN_IMG_PATH, "rb") as photo:
+                    await query.message.reply_photo(
+                        photo=photo,
+                        caption=caption,
+                        reply_markup=get_result_buttons()
+                    )
+                await query.delete_message()
+            except Exception:
+                await query.edit_message_text(
+                    caption,
+                    reply_markup=get_result_buttons()
+                )
+
+    elif query.data == "market_status":
+        prices = await fetch_prices()
+        ma = round(sum(prices[-20:]) / 20, 2) if len(prices) >= 20 else "---"
+        last_price = prices[-1] if prices else "---"
+        await query.edit_message_text(
+            f"آخر سعر للبيتكوين: {last_price}$\nالمتوسط المتحرك 20 ساعة: {ma}$",
+            reply_markup=get_main_menu()
+        )
+
+    elif query.data == "help":
+        await query.edit_message_text(
+            "لبدء التداول اضغط على 'ابدأ التداول'.\n"
+            "اختر المبلغ، ثم انتظر الإشارة مع صورة وتحليل حقيقي.\n"
+            "بعد التداول علّم إذا ربحت أو خسرت.",
+            reply_markup=get_main_menu()
+        )
+
+    elif query.data == "win":
+        user_data[user_id]["wins"] += 1
+        await query.edit_message_text(
+            f"مبروك الربح! ✅\nعدد أرباحك: {user_data[user_id]['wins']}\n\nاختر من القائمة:",
+            reply_markup=get_main_menu()
+        )
+
+    elif query.data == "lose":
+        user_data[user_id]["losses"] += 1
+        await query.edit_message_text(
+            f"حظاً أوفر في الصفقة القادمة! ❌\nعدد خسائرك: {user_data[user_id]['losses']}\n\nاختر من القائمة:",
+            reply_markup=get_main_menu()
+        )
+
+    elif query.data == "main_menu":
+        await query.edit_message_text(
+            "القائمة الرئيسية:",
+            reply_markup=get_main_menu()
+        )
+
+def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
