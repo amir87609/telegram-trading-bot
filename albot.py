@@ -125,7 +125,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 def main():
-    TOKEN = os.getenv("8105076316:AAEjX4ds7PIugr_N-zarYZILHGqD2zFM-OY")
+    TOKEN = os.getenv(" 8105076316:AAEjX4ds7PIugr_N-zarYZILHGqD2zFM-OY ")
     if not TOKEN:
         print("Error: BOT_TOKEN environment variable not set!")
         return
