@@ -1,5 +1,4 @@
 import logging
-import os
 import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -8,6 +7,9 @@ from telegram.ext import (
     CallbackQueryHandler,
     ContextTypes
 )
+
+# توكن البوت الخاص بك
+TOKEN = "8105076316:AAEjX4ds7PIugr_N-zarYZILHGqD2zFM-OY"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -125,11 +127,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 def main():
-    TOKEN = os.getenv(" 8105076316:AAEjX4ds7PIugr_N-zarYZILHGqD2zFM-OY ")
-    if not TOKEN:
-        print("Error: BOT_TOKEN environment variable not set!")
-        return
-
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
