@@ -8,7 +8,7 @@ from telegram.ext import (
     ContextTypes
 )
 
-TOKEN = "8080679821:AAGO2n1NbKPvQExjrjwKsW99SFhOjEEh-fA"
+TOKEN = "7467619502:AAGRo3Pe6rrUsSf5rwiIWMbUGhJPekQDllk"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
